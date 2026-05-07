@@ -1,0 +1,832 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<title>慧盘 · 市场总览</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Noto+Sans+SC:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg:      #12151b;
+  --bg2:     #181c24;
+  --bg3:     #1e2330;
+  --bg4:     #242a38;
+  --border:  #2a3142;
+  --text:    #bdc8da;
+  --text2:   #5e7091;
+  --text3:   #35425a;
+  --red:     #e05555;
+  --green:   #3aaa72;
+  --blue:    #4a96f0;
+  --yellow:  #e8b84a;
+  --red-bg:  rgba(224,85,85,0.1);
+  --grn-bg:  rgba(58,170,114,0.1);
+  --blu-bg:  rgba(74,150,240,0.1);
+  --yel-bg:  rgba(232,184,74,0.1);
+  --mono:    'DM Mono', monospace;
+  --sans:    'Noto Sans SC', sans-serif;
+}
+*{margin:0;padding:0;box-sizing:border-box;}
+body{background:var(--bg);color:var(--text);font-family:var(--sans);font-size:12px;height:100vh;overflow:hidden;display:flex;flex-direction:column;}
+
+/* ── 顶栏 ── */
+.topbar{display:flex;align-items:center;padding:0 14px;height:36px;background:var(--bg2);border-bottom:1px solid var(--border);flex-shrink:0;gap:0;}
+.logo{font-family:var(--mono);font-size:13px;color:var(--yellow);letter-spacing:3px;margin-right:20px;flex-shrink:0;}
+.tabs{display:flex;height:100%;}
+.tab{padding:0 13px;height:100%;display:flex;align-items:center;font-size:11px;color:var(--text2);cursor:pointer;border-bottom:2px solid transparent;white-space:nowrap;transition:all 0.15s;}
+.tab:hover{color:var(--text);}
+.tab.active{color:var(--yellow);border-bottom-color:var(--yellow);}
+.topbar-right{margin-left:auto;display:flex;align-items:center;gap:10px;}
+.live{display:flex;align-items:center;gap:5px;font-family:var(--mono);font-size:9px;color:var(--text2);}
+.dot{width:5px;height:5px;background:var(--green);border-radius:50%;animation:pulse 2s infinite;}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:0.3}}
+
+/* ── 预警横条 ── */
+.alert-banner{background:rgba(232,184,74,0.06);border-bottom:1px solid rgba(232,184,74,0.15);padding:4px 14px;display:flex;align-items:center;gap:10px;flex-shrink:0;}
+.alert-tag{font-family:var(--mono);font-size:9px;letter-spacing:1px;color:var(--yellow);background:var(--yel-bg);border:1px solid rgba(232,184,74,0.2);padding:1px 7px;border-radius:2px;white-space:nowrap;}
+.alert-text{font-size:10px;color:var(--text2);}
+.alert-text strong{color:var(--yellow);}
+.alert-text .r{color:var(--red);}
+.alert-text .mono{font-family:var(--mono);font-size:12px;}
+
+/* ── 主布局 ── */
+.main{flex:1;display:grid;grid-template-columns:188px 1fr 1fr 210px;gap:1px;background:var(--border);overflow:hidden;min-height:0;}
+.col{background:var(--bg);display:flex;flex-direction:column;overflow:hidden;}
+.sec{padding:10px 12px;border-bottom:1px solid var(--border);flex-shrink:0;}
+.sec.grow{flex:1;overflow:hidden;}
+.sec-title{font-family:var(--mono);font-size:8px;letter-spacing:2px;color:var(--text3);text-transform:uppercase;margin-bottom:8px;}
+
+/* ── 左列 ── */
+.stat-row{display:flex;justify-content:space-between;align-items:baseline;padding:4px 0;border-bottom:1px solid rgba(255,255,255,0.03);}
+.stat-row:last-child{border-bottom:none;}
+.stat-key{font-size:10px;color:var(--text2);}
+.stat-val{font-family:var(--mono);font-size:13px;font-weight:500;}
+.stat-note{font-size:9px;color:var(--text3);margin-top:1px;line-height:1.4;}
+
+.kpi2{display:grid;grid-template-columns:1fr 1fr;gap:5px;margin-bottom:5px;}
+.kpi-box{background:var(--bg2);border:1px solid var(--border);border-radius:4px;padding:7px 8px;}
+.kpi-val{font-family:var(--mono);font-size:16px;font-weight:500;line-height:1;}
+.kpi-lbl{font-size:9px;color:var(--text2);margin-top:2px;}
+.kpi-note{font-size:8px;color:var(--text3);margin-top:2px;line-height:1.3;}
+
+.r{color:var(--red);}
+.g{color:var(--green);}
+.b{color:var(--blue);}
+.y{color:var(--yellow);}
+
+/* 大中小盘 */
+.mktcap-row{display:flex;align-items:center;gap:6px;padding:4px 0;border-bottom:1px solid rgba(255,255,255,0.03);cursor:pointer;}
+.mktcap-row:last-child{border-bottom:none;}
+.mktcap-row:hover{background:rgba(255,255,255,0.02);}
+.mktcap-lbl{font-size:10px;color:var(--text2);width:28px;flex-shrink:0;}
+.mktcap-name{font-size:9px;color:var(--text3);width:44px;flex-shrink:0;}
+.bar-track{flex:1;height:3px;background:var(--bg4);border-radius:2px;overflow:hidden;}
+.bar-fill{height:100%;border-radius:2px;}
+.mktcap-pct{font-family:var(--mono);font-size:11px;width:40px;text-align:right;flex-shrink:0;}
+
+/* 成交额 */
+.vol-row{display:flex;align-items:center;gap:6px;margin-bottom:4px;}
+.vol-lbl{font-size:10px;color:var(--text2);width:40px;flex-shrink:0;}
+.vol-track{flex:1;height:3px;background:var(--bg4);border-radius:2px;overflow:hidden;}
+.vol-num{font-family:var(--mono);font-size:10px;width:48px;text-align:right;flex-shrink:0;}
+
+/* ── 中列1热力图 ── */
+.hmap-wrap{flex:1;display:flex;flex-direction:column;overflow:hidden;}
+.hmap-tabs{display:flex;gap:1px;margin-bottom:7px;}
+.htab{padding:2px 9px;font-size:9px;font-family:var(--mono);color:var(--text2);background:var(--bg2);border:1px solid var(--border);border-radius:2px;cursor:pointer;transition:all 0.12s;}
+.htab.on{background:var(--yel-bg);border-color:rgba(232,184,74,0.3);color:var(--yellow);}
+.hmap{display:grid;grid-template-columns:repeat(6,1fr);gap:2px;flex:1;}
+.hc{border-radius:3px;display:flex;flex-direction:column;align-items:center;justify-content:center;cursor:pointer;min-height:36px;transition:filter 0.1s;position:relative;}
+.hc:hover{filter:brightness(1.18);z-index:2;}
+.hc-n{font-size:8px;color:rgba(255,255,255,0.72);text-align:center;line-height:1.3;padding:0 2px;}
+.hc-p{font-family:var(--mono);font-size:8px;color:rgba(255,255,255,0.5);margin-top:1px;}
+.hc-f{font-size:7px;color:rgba(255,255,255,0.3);}
+.hmap-note{padding-top:6px;font-size:9px;color:var(--text2);}
+
+/* 资金行 */
+.fund-grid{display:grid;grid-template-columns:1fr 1fr;gap:5px;}
+.fund-item{background:var(--bg2);border:1px solid var(--border);border-radius:4px;padding:7px 9px;}
+.fund-lbl{font-size:8px;color:var(--text3);font-family:var(--mono);letter-spacing:1px;margin-bottom:4px;}
+.fund-val{font-family:var(--mono);font-size:14px;font-weight:500;line-height:1;}
+.fund-note{font-size:9px;color:var(--text2);margin-top:3px;line-height:1.4;}
+
+/* ETF热点 */
+.etf-tabs{display:flex;gap:1px;margin-bottom:6px;}
+.etab{padding:2px 8px;font-size:9px;font-family:var(--mono);color:var(--text2);background:var(--bg2);border:1px solid var(--border);border-radius:2px;cursor:pointer;}
+.etab.on{background:var(--blu-bg);border-color:rgba(74,150,240,0.3);color:var(--blue);}
+.etf-row{display:flex;align-items:center;gap:6px;padding:4px 0;border-bottom:1px solid rgba(255,255,255,0.03);}
+.etf-row:last-child{border-bottom:none;}
+.etf-rank{font-family:var(--mono);font-size:9px;color:var(--text3);width:12px;}
+.etf-name{flex:1;font-size:10px;color:var(--text);}
+.etf-vol{font-family:var(--mono);font-size:10px;color:var(--text2);width:38px;text-align:right;}
+.etf-pct{font-family:var(--mono);font-size:10px;width:42px;text-align:right;}
+
+/* ── 中列2信号 ── */
+.sig-item{display:flex;gap:8px;padding:7px 0;border-bottom:1px solid var(--border);}
+.sig-item:last-child{border-bottom:none;}
+.prob-box{width:42px;height:42px;border-radius:4px;display:flex;flex-direction:column;align-items:center;justify-content:center;flex-shrink:0;}
+.prob-box.risk{background:var(--red-bg);border:1px solid rgba(224,85,85,0.2);}
+.prob-box.chance{background:var(--grn-bg);border:1px solid rgba(58,170,114,0.2);}
+.prob-num{font-family:var(--mono);font-size:14px;font-weight:500;line-height:1;}
+.prob-box.risk .prob-num{color:var(--red);}
+.prob-box.chance .prob-num{color:var(--green);}
+.prob-n{font-family:var(--mono);font-size:8px;color:var(--text3);margin-top:1px;}
+.sig-body{flex:1;}
+.sig-title{font-size:11px;color:var(--text);line-height:1.4;}
+.sig-detail{font-size:9px;color:var(--text2);margin-top:2px;line-height:1.4;}
+
+/* 跨市场异动 */
+.anomaly-item{padding:7px 0;border-bottom:1px solid var(--border);}
+.anomaly-item:last-child{border-bottom:none;}
+.anomaly-tag{display:inline-block;font-family:var(--mono);font-size:8px;padding:1px 5px;border-radius:2px;margin-bottom:4px;}
+.anomaly-tag.blue{background:var(--blu-bg);color:var(--blue);border:1px solid rgba(74,150,240,0.2);}
+.anomaly-tag.yellow{background:var(--yel-bg);color:var(--yellow);border:1px solid rgba(232,184,74,0.2);}
+.anomaly-tag.red{background:var(--red-bg);color:var(--red);border:1px solid rgba(224,85,85,0.2);}
+.anomaly-text{font-size:10px;color:var(--text);line-height:1.5;}
+.anomaly-text strong{color:var(--yellow);}
+.anomaly-text .r{color:var(--red);}
+.anomaly-text .g{color:var(--green);}
+
+/* 偏离预警 */
+.dev-card{background:rgba(232,184,74,0.04);border:1px solid rgba(232,184,74,0.14);border-radius:4px;padding:8px;margin-bottom:5px;}
+.dev-card:last-child{margin-bottom:0;}
+.dev-title{font-family:var(--mono);font-size:8px;letter-spacing:1px;color:var(--yellow);margin-bottom:5px;}
+.dev-text{font-size:10px;color:var(--text2);line-height:1.6;}
+.dev-text .prob{font-family:var(--mono);font-size:13px;color:var(--yellow);font-weight:500;}
+
+/* ── 右列 ── */
+.right-col{overflow-y:auto;scrollbar-width:thin;scrollbar-color:var(--border) transparent;}
+.right-col::-webkit-scrollbar{width:3px;}
+.right-col::-webkit-scrollbar-thumb{background:var(--border);border-radius:2px;}
+.rgroup{padding:8px 12px;border-bottom:1px solid var(--border);}
+.rgroup-title{font-family:var(--mono);font-size:8px;letter-spacing:2px;color:var(--text3);text-transform:uppercase;margin-bottom:5px;}
+.mkt-row{display:grid;grid-template-columns:1fr auto auto;align-items:baseline;gap:4px;padding:3px 0;border-bottom:1px solid rgba(255,255,255,0.025);}
+.mkt-row:last-child{border-bottom:none;}
+.mkt-name{font-size:10px;color:var(--text2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.mkt-val{font-family:var(--mono);font-size:10px;color:var(--text);text-align:right;white-space:nowrap;}
+.mkt-chg{font-family:var(--mono);font-size:10px;text-align:right;white-space:nowrap;min-width:44px;}
+</style>
+</head>
+<body>
+
+<!-- 顶栏 -->
+<div class="topbar">
+  <div class="logo">慧盘</div>
+  <div class="tabs">
+    <div class="tab active">市场总览</div>
+    <div class="tab">ETF</div>
+    <div class="tab">资金追踪</div>
+    <div class="tab">历史规律</div>
+    <div class="tab">自选股</div>
+  </div>
+  <div class="topbar-right">
+    <div class="live"><span class="dot"></span>2026-03-04 15:45 已采集</div>
+  </div>
+</div>
+
+<!-- 预警横条 -->
+<div class="alert-banner">
+  <span class="alert-tag">⚡ 偏离预警</span>
+  <span class="alert-text">
+    <strong>30年国债 +1.00%</strong> 同时大盘跌 <strong class="r">-0.98%</strong>，risk-off极端情绪 ·
+    历史后10日反弹概率 <strong class="mono">74%</strong>（n=31）&nbsp;·&nbsp;
+    缩量配合普跌，后3日企稳 <strong class="mono">61%</strong>
+  </span>
+</div>
+
+<div class="main">
+
+  <!-- ── 左列 ── -->
+  <div class="col">
+
+    <div class="sec">
+      <div class="sec-title">今日概况</div>
+      <div class="kpi2">
+        <div class="kpi-box">
+          <div class="kpi-val r">44</div>
+          <div class="kpi-lbl">涨停</div>
+          <div class="kpi-note">↓ 近30日偏少<br>仅高于8个交易日</div>
+        </div>
+        <div class="kpi-box">
+          <div class="kpi-val y">19</div>
+          <div class="kpi-lbl">跌停</div>
+          <div class="kpi-note">↑ 近30日偏多<br>高于22个交易日</div>
+        </div>
+        <div class="kpi-box">
+          <div class="kpi-val b">1089</div>
+          <div class="kpi-lbl">上涨</div>
+          <div class="kpi-note">上涨比 21%</div>
+        </div>
+        <div class="kpi-box">
+          <div class="kpi-val g">3872</div>
+          <div class="kpi-lbl">下跌</div>
+          <div class="kpi-note">&gt;2%占54%</div>
+        </div>
+      </div>
+
+      <div class="stat-row">
+        <div>
+          <div class="stat-key">连续3日上涨</div>
+        </div>
+        <div style="text-align:right;">
+          <div class="stat-val r">127支</div>
+          <div class="stat-note">↓ 近30日偏少</div>
+        </div>
+      </div>
+      <div class="stat-row">
+        <div>
+          <div class="stat-key">连续3日下跌</div>
+        </div>
+        <div style="text-align:right;">
+          <div class="stat-val g">389支</div>
+          <div class="stat-note">↑ 近30日偏多</div>
+        </div>
+      </div>
+      <div class="stat-row">
+        <div>
+          <div class="stat-key">创52周新高</div>
+        </div>
+        <div style="text-align:right;">
+          <div class="stat-val r">12支</div>
+          <div class="stat-note">↓ 近30日偏少</div>
+        </div>
+      </div>
+      <div class="stat-row">
+        <div>
+          <div class="stat-key">创52周新低</div>
+        </div>
+        <div style="text-align:right;">
+          <div class="stat-val g">89支</div>
+          <div class="stat-note">↑ 近30日偏多</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="sec">
+      <div class="sec-title">大中小盘 · 点击展开分布</div>
+      <div class="mktcap-row" onclick="toggleDist()">
+        <div class="mktcap-lbl">大盘</div>
+        <div class="mktcap-name" style="font-size:8px;color:var(--text3)">沪深300</div>
+        <div class="bar-track"><div class="bar-fill" style="width:65%;background:var(--green);"></div></div>
+        <div class="mktcap-pct g">-0.98%</div>
+      </div>
+      <div class="mktcap-row" onclick="toggleDist()">
+        <div class="mktcap-lbl">中盘</div>
+        <div class="mktcap-name" style="font-size:8px;color:var(--text3)">中证500</div>
+        <div class="bar-track"><div class="bar-fill" style="width:80%;background:var(--green);"></div></div>
+        <div class="mktcap-pct g">-1.54%</div>
+      </div>
+      <div class="mktcap-row" onclick="toggleDist()">
+        <div class="mktcap-lbl">小盘</div>
+        <div class="mktcap-name" style="font-size:8px;color:var(--text3)">其余</div>
+        <div class="bar-track"><div class="bar-fill" style="width:100%;background:var(--green);"></div></div>
+        <div class="mktcap-pct g">-2.31%</div>
+      </div>
+
+      <!-- 展开的分布图 -->
+      <div id="dist-detail" style="display:none;margin-top:8px;padding:8px;background:var(--bg2);border-radius:4px;border:1px solid var(--border);">
+        <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;">
+          <div>
+            <div style="font-size:8px;color:var(--text3);font-family:var(--mono);margin-bottom:5px;">大盘(300只)</div>
+            <div id="dist-large"></div>
+          </div>
+          <div>
+            <div style="font-size:8px;color:var(--text3);font-family:var(--mono);margin-bottom:5px;">中盘(500只)</div>
+            <div id="dist-mid"></div>
+          </div>
+          <div>
+            <div style="font-size:8px;color:var(--text3);font-family:var(--mono);margin-bottom:5px;">小盘(4200+)</div>
+            <div id="dist-small"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="sec grow">
+      <div class="sec-title">成交额</div>
+      <div style="margin-bottom:8px;">
+        <div style="font-family:var(--mono);font-size:22px;font-weight:500;color:var(--red);line-height:1;">7821亿</div>
+        <div style="font-size:10px;color:var(--text2);margin-top:4px;">↓ 近30日偏低，仅高于6个交易日</div>
+      </div>
+      <div class="vol-row">
+        <div class="vol-lbl">今日</div>
+        <div class="vol-track"><div class="bar-fill" style="width:62%;background:var(--red);"></div></div>
+        <div class="vol-num r">7821亿</div>
+      </div>
+      <div class="vol-row">
+        <div class="vol-lbl">30日均</div>
+        <div class="vol-track"><div class="bar-fill" style="width:100%;background:var(--text3);"></div></div>
+        <div class="vol-num" style="color:var(--text2)">12640亿</div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- ── 中列1 ── -->
+  <div class="col">
+
+    <div class="sec grow" style="display:flex;flex-direction:column;">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;">
+        <div class="sec-title" style="margin-bottom:0;">板块热力图 · <span style="letter-spacing:0;text-transform:none;color:var(--text3)">大小=成交额 颜色=涨跌幅</span></div>
+        <div class="hmap-tabs">
+          <div class="htab on" onclick="setHTab(this,'今日')">今日</div>
+          <div class="htab" onclick="setHTab(this,'5日')">5日</div>
+          <div class="htab" onclick="setHTab(this,'1月')">1月</div>
+        </div>
+      </div>
+      <div class="hmap-wrap">
+        <div class="hmap">
+          <div class="hc" style="background:rgba(224,85,85,0.52);grid-column:span 3;min-height:52px;">
+            <div class="hc-n" style="font-size:11px;">军工装备</div>
+            <div class="hc-p" style="font-size:10px;">+2.19%</div>
+            <div class="hc-f" style="font-size:8px;">净流入44.6亿</div>
+          </div>
+          <div class="hc" style="background:rgba(224,85,85,0.42);grid-column:span 2;min-height:52px;">
+            <div class="hc-n" style="font-size:11px;">电网设备</div>
+            <div class="hc-p">+3.86%</div><div class="hc-f">37.6亿</div>
+          </div>
+          <div class="hc" style="background:rgba(58,170,114,0.38);min-height:52px;">
+            <div class="hc-n">证券</div><div class="hc-p">-2.35%</div>
+          </div>
+          <div class="hc" style="background:rgba(58,170,114,0.42);grid-column:span 2;">
+            <div class="hc-n">港口航运</div><div class="hc-p">-5.49%</div><div class="hc-f">27.2亿</div>
+          </div>
+          <div class="hc" style="background:rgba(224,85,85,0.32);">
+            <div class="hc-n">输变电</div><div class="hc-p">+5.45%</div>
+          </div>
+          <div class="hc" style="background:rgba(224,85,85,0.25);">
+            <div class="hc-n">种植业</div><div class="hc-p">+3.04%</div>
+          </div>
+          <div class="hc" style="background:rgba(58,170,114,0.28);">
+            <div class="hc-n">医药</div><div class="hc-p">-1.53%</div>
+          </div>
+          <div class="hc" style="background:rgba(58,170,114,0.35);grid-column:span 2;">
+            <div class="hc-n" style="font-size:11px;">白酒</div>
+            <div class="hc-p">-2.35%</div><div class="hc-f">流出18.7亿</div>
+          </div>
+          <div class="hc" style="background:rgba(224,85,85,0.18);">
+            <div class="hc-n">航天</div><div class="hc-p">+1.82%</div>
+          </div>
+          <div class="hc" style="background:rgba(58,170,114,0.18);">
+            <div class="hc-n">消费电子</div><div class="hc-p">-1.02%</div>
+          </div>
+          <div class="hc" style="background:rgba(74,150,240,0.22);">
+            <div class="hc-n">芯片</div><div class="hc-p" style="color:rgba(74,150,240,0.7)">+1.00%</div>
+          </div>
+          <div class="hc" style="background:rgba(58,170,114,0.15);">
+            <div class="hc-n">新能源</div><div class="hc-p">-0.87%</div>
+          </div>
+          <div class="hc" style="background:rgba(255,255,255,0.03);border:1px solid var(--border);">
+            <div class="hc-n" style="color:var(--text3)">银行</div>
+            <div class="hc-p" style="color:var(--text3)">-0.12%</div>
+          </div>
+          <div class="hc" style="background:rgba(58,170,114,0.22);">
+            <div class="hc-n">地产</div><div class="hc-p">-1.78%</div>
+          </div>
+        </div>
+        <div class="hmap-note">▶ 防御/电力承接资金，消费/金融持续流出，避险情绪主导</div>
+      </div>
+    </div>
+
+    <div class="sec">
+      <div class="sec-title">资金</div>
+      <div class="fund-grid">
+        <div class="fund-item">
+          <div class="fund-lbl">融资余额</div>
+          <div class="fund-val y">1.42万亿</div>
+          <div class="fund-note">↓ 近30日偏低<br>仅高于5个交易日</div>
+        </div>
+        <div class="fund-item">
+          <div class="fund-lbl">融资净买入</div>
+          <div class="fund-val g">-32亿</div>
+          <div class="fund-note">连续4日净流出</div>
+        </div>
+        <div class="fund-item">
+          <div class="fund-lbl">大宗折价率</div>
+          <div class="fund-val r">-3.2%</div>
+          <div class="fund-note">↑ 折价偏高<br>出货压力较大</div>
+        </div>
+        <div class="fund-item">
+          <div class="fund-lbl">ETF总成交</div>
+          <div class="fund-val b">1823亿</div>
+          <div class="fund-note">↑ 近30日偏高<br>机构参与度高</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="sec" style="flex-shrink:0;">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px;">
+        <div class="sec-title" style="margin-bottom:0;">ETF 热点</div>
+        <div class="etf-tabs">
+          <div class="etab on" onclick="setETab(this,'vol')">成交额</div>
+          <div class="etab" onclick="setETab(this,'chg')">涨跌幅</div>
+        </div>
+      </div>
+      <div id="etf-vol">
+        <div class="etf-row"><div class="etf-rank">1</div><div class="etf-name">沪深300ETF</div><div class="etf-vol b">412亿</div><div class="etf-pct g">-1.15%</div></div>
+        <div class="etf-row"><div class="etf-rank">2</div><div class="etf-name">科创50ETF</div><div class="etf-vol b">198亿</div><div class="etf-pct g">-0.48%</div></div>
+        <div class="etf-row"><div class="etf-rank">3</div><div class="etf-name">30年国债ETF</div><div class="etf-vol b">89亿</div><div class="etf-pct y">+1.00%</div></div>
+      </div>
+      <div id="etf-chg" style="display:none;">
+        <div class="etf-row"><div class="etf-rank" style="color:var(--red)">↑</div><div class="etf-name">30年国债ETF</div><div class="etf-vol" style="color:var(--text3)">89亿</div><div class="etf-pct y">+1.00%</div></div>
+        <div class="etf-row"><div class="etf-rank" style="color:var(--red)">↑</div><div class="etf-name">芯片ETF</div><div class="etf-vol" style="color:var(--text3)">45亿</div><div class="etf-pct r">+1.00%</div></div>
+        <div class="etf-row"><div class="etf-rank" style="color:var(--green)">↓</div><div class="etf-name">证券ETF</div><div class="etf-vol" style="color:var(--text3)">67亿</div><div class="etf-pct g">-2.35%</div></div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- ── 中列2 ── -->
+  <div class="col">
+
+    <div class="sec">
+      <div class="sec-title">风险信号</div>
+      <div class="sig-item">
+        <div class="prob-box risk"><div class="prob-num">72%</div><div class="prob-n">n=89</div></div>
+        <div class="sig-body"><div class="sig-title">龙虎榜游资主导后3日内见顶</div><div class="sig-detail">今日游资席位占比&gt;60%</div></div>
+      </div>
+      <div class="sig-item">
+        <div class="prob-box risk"><div class="prob-num">28%</div><div class="prob-n">n=156</div></div>
+        <div class="sig-body"><div class="sig-title">三连板次日上涨仅28%</div><div class="sig-detail">今日3只三连板 · 平均次日-2.1%</div></div>
+      </div>
+    </div>
+
+    <div class="sec">
+      <div class="sec-title">机会信号</div>
+      <div class="sig-item">
+        <div class="prob-box chance"><div class="prob-num">68%</div><div class="prob-n">n=49</div></div>
+        <div class="sig-body"><div class="sig-title">涨停数近30日后22%，后5日上涨</div><div class="sig-detail">历史反转2-4日后</div></div>
+      </div>
+      <div class="sig-item">
+        <div class="prob-box chance"><div class="prob-num">61%</div><div class="prob-n">n=87</div></div>
+        <div class="sig-body"><div class="sig-title">极度缩量后3日企稳</div><div class="sig-detail">成交额近30日后22%</div></div>
+      </div>
+    </div>
+
+    <div class="sec">
+      <div class="sec-title">跨市场异动 · AI检测</div>
+      <div class="anomaly-item">
+        <span class="anomaly-tag blue">美股</span>
+        <div class="anomaly-text">费城半导体指数昨夜 <strong>+3.2%</strong>，历史上半导体ETF次日跟涨概率 <strong>71%</strong></div>
+      </div>
+      <div class="anomaly-item">
+        <span class="anomaly-tag yellow">大宗</span>
+        <div class="anomaly-text">黄金创近月新高，避险情绪升温，历史上A股同日下跌概率 <strong class="r">64%</strong></div>
+      </div>
+      <div class="anomaly-item">
+        <span class="anomaly-tag red">汇率</span>
+        <div class="anomaly-text">离岸人民币较在岸偏弱 <strong class="r">156点</strong>，外资流出压力偏高</div>
+      </div>
+    </div>
+
+    <div class="sec grow">
+      <div class="sec-title">⚡ 预期偏离预警</div>
+      <div class="dev-card">
+        <div class="dev-title">长债强势 + 股市普跌</div>
+        <div class="dev-text">30年国债 <span class="y">+1.00%</span> 同时沪深300 <span class="r">-0.98%</span>，risk-off极端情绪，后10日反弹 <span class="prob">74%</span>（n=31）</div>
+      </div>
+      <div class="dev-card">
+        <div class="dev-title">三信号同时触发</div>
+        <div class="dev-text">涨停低位+缩量+长债避险，历史类似组合后5日反弹 <span class="prob">76%</span>（n=23）</div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- ── 右列（可滚动） ── -->
+  <div class="col right-col">
+
+    <div class="rgroup">
+      <div class="rgroup-title">亚太股市</div>
+      <div class="mkt-row"><div class="mkt-name">富时A50期货</div><div class="mkt-val">13,240</div><div class="mkt-chg r">-0.85%</div></div>
+      <div class="mkt-row"><div class="mkt-name">恒生指数</div><div class="mkt-val">19,548</div><div class="mkt-chg r">-1.32%</div></div>
+      <div class="mkt-row"><div class="mkt-name">恒生科技</div><div class="mkt-val">4,621</div><div class="mkt-chg r">-2.11%</div></div>
+      <div class="mkt-row"><div class="mkt-name">日经225</div><div class="mkt-val">38,240</div><div class="mkt-chg r">-0.64%</div></div>
+    </div>
+
+    <div class="rgroup">
+      <div class="rgroup-title">美股 昨夜</div>
+      <div class="mkt-row"><div class="mkt-name">道琼斯</div><div class="mkt-val">43,840</div><div class="mkt-chg r">-0.28%</div></div>
+      <div class="mkt-row"><div class="mkt-name">纳斯达克</div><div class="mkt-val">19,232</div><div class="mkt-chg r">-1.21%</div></div>
+      <div class="mkt-row"><div class="mkt-name">标普500</div><div class="mkt-val">5,861</div><div class="mkt-chg r">-0.76%</div></div>
+      <div class="mkt-row"><div class="mkt-name">VIX 恐慌</div><div class="mkt-val y">22.4</div><div class="mkt-chg y">+8.3%</div></div>
+    </div>
+
+    <div class="rgroup">
+      <div class="rgroup-title">汇率</div>
+      <div class="mkt-row"><div class="mkt-name">美元指数 DXY</div><div class="mkt-val">104.2</div><div class="mkt-chg r">+0.32%</div></div>
+      <div class="mkt-row"><div class="mkt-name">在岸人民币</div><div class="mkt-val">7.2856</div><div class="mkt-chg g">-0.12%</div></div>
+      <div class="mkt-row"><div class="mkt-name">离岸人民币</div><div class="mkt-val r">7.3012</div><div class="mkt-chg g">-0.21%</div></div>
+    </div>
+
+    <div class="rgroup">
+      <div class="rgroup-title">利率</div>
+      <div class="mkt-row"><div class="mkt-name">中国10年国债</div><div class="mkt-val g">1.82%</div><div class="mkt-chg g">-2bp</div></div>
+      <div class="mkt-row"><div class="mkt-name">美债10年</div><div class="mkt-val">4.28%</div><div class="mkt-chg r">+3bp</div></div>
+      <div class="mkt-row"><div class="mkt-name">DR007</div><div class="mkt-val g">1.65%</div><div class="mkt-chg" style="color:var(--text3)">—</div></div>
+    </div>
+
+    <div class="rgroup">
+      <div class="rgroup-title">贵金属</div>
+      <div class="mkt-row"><div class="mkt-name">黄金</div><div class="mkt-val y">2,648</div><div class="mkt-chg y">+0.82%</div></div>
+      <div class="mkt-row"><div class="mkt-name">白银</div><div class="mkt-val y">29.4</div><div class="mkt-chg y">+1.12%</div></div>
+    </div>
+
+    <div class="rgroup">
+      <div class="rgroup-title">能源</div>
+      <div class="mkt-row"><div class="mkt-name">布伦特原油</div><div class="mkt-val">74.8</div><div class="mkt-chg g">-0.93%</div></div>
+      <div class="mkt-row"><div class="mkt-name">WTI 原油</div><div class="mkt-val">71.2</div><div class="mkt-chg g">-1.15%</div></div>
+      <div class="mkt-row"><div class="mkt-name">天然气</div><div class="mkt-val">2.84</div><div class="mkt-chg r">+2.17%</div></div>
+      <div class="mkt-row"><div class="mkt-name">动力煤</div><div class="mkt-val">812</div><div class="mkt-chg g">-0.48%</div></div>
+    </div>
+
+    <div class="rgroup">
+      <div class="rgroup-title">有色 · 黑色</div>
+      <div class="mkt-row"><div class="mkt-name">铜</div><div class="mkt-val">9,840</div><div class="mkt-chg g">-0.82%</div></div>
+      <div class="mkt-row"><div class="mkt-name">铝</div><div class="mkt-val">2,412</div><div class="mkt-chg g">-0.55%</div></div>
+      <div class="mkt-row"><div class="mkt-name">螺纹钢</div><div class="mkt-val">3,285</div><div class="mkt-chg g">-0.91%</div></div>
+      <div class="mkt-row"><div class="mkt-name">铁矿石</div><div class="mkt-val">812</div><div class="mkt-chg g">-1.34%</div></div>
+    </div>
+
+    <div class="rgroup">
+      <div class="rgroup-title">农产品</div>
+      <div class="mkt-row"><div class="mkt-name">豆粕</div><div class="mkt-val">2,956</div><div class="mkt-chg r">+0.44%</div></div>
+    </div>
+
+    <div class="rgroup">
+      <div class="rgroup-title">其他</div>
+      <div class="mkt-row"><div class="mkt-name">比特币</div><div class="mkt-val">98,420</div><div class="mkt-chg r">+1.24%</div></div>
+      <div class="mkt-row"><div class="mkt-name">BDI 干散货</div><div class="mkt-val">1,842</div><div class="mkt-chg g">-0.32%</div></div>
+    </div>
+
+  </div>
+
+</div>
+
+<script>
+// Tab切换
+document.querySelectorAll('.tab').forEach(t=>t.addEventListener('click',function(){
+  document.querySelectorAll('.tab').forEach(x=>x.classList.remove('active'));
+  this.classList.add('active');
+}));
+
+// 热力图周期
+function setHTab(el,period){
+  document.querySelectorAll('.htab').forEach(x=>x.classList.remove('on'));
+  el.classList.add('on');
+}
+
+// ETF Tab
+function setETab(el,type){
+  document.querySelectorAll('.etab').forEach(x=>x.classList.remove('on'));
+  el.classList.add('on');
+  document.getElementById('etf-vol').style.display = type==='vol'?'block':'none';
+  document.getElementById('etf-chg').style.display = type==='chg'?'block':'none';
+}
+
+// 大中小盘分布展开
+const distData = {
+  large: [{label:'>7%',n:8},{label:'5-7%',n:15},{label:'3-5%',n:24},{label:'1-3%',n:45},{label:'0-1%',n:28},{label:'0%',n:3},{label:'-1-0%',n:34},{label:'-3-1%',n:67},{label:'-5-3%',n:52},{label:'-7-5%',n:18},{label:'<-7%',n:6}],
+  mid:   [{label:'>7%',n:12},{label:'5-7%',n:28},{label:'3-5%',n:45},{label:'1-3%',n:67},{label:'0-1%',n:34},{label:'0%',n:5},{label:'-1-0%',n:56},{label:'-3-1%',n:112},{label:'-5-3%',n:89},{label:'-7-5%',n:34},{label:'<-7%',n:18}],
+  small: [{label:'>7%',n:89},{label:'5-7%',n:156},{label:'3-5%',n:234},{label:'1-3%',n:312},{label:'0-1%',n:189},{label:'0%',n:23},{label:'-1-0%',n:345},{label:'-3-1%',n:678},{label:'-5-3%',n:521},{label:'-7-5%',n:289},{label:'<-7%',n:364}]
+};
+
+function renderDist(id, data){
+  const max = Math.max(...data.map(d=>d.n));
+  const el = document.getElementById(id);
+  el.innerHTML = data.map(d=>{
+    const w = Math.round(d.n/max*100);
+    const isUp = d.label.includes('>') || (d.label.includes('-')==false && d.label!='0%');
+    const col = d.label=='0%'?'var(--text3)': isUp?'var(--red)':'var(--green)';
+    return `<div style="display:flex;align-items:center;gap:3px;margin-bottom:2px;">
+      <div style="font-family:var(--mono);font-size:7px;color:var(--text3);width:34px;flex-shrink:0;">${d.label}</div>
+      <div style="flex:1;height:3px;background:var(--bg4);border-radius:2px;overflow:hidden;">
+        <div style="width:${w}%;height:100%;background:${col};border-radius:2px;"></div>
+      </div>
+      <div style="font-family:var(--mono);font-size:7px;color:var(--text2);width:26px;text-align:right;">${d.n}</div>
+    </div>`;
+  }).join('');
+}
+
+let distOpen = false;
+function toggleDist(){
+  distOpen = !distOpen;
+  const el = document.getElementById('dist-detail');
+  el.style.display = distOpen ? 'block' : 'none';
+  if(distOpen){
+    renderDist('dist-large', distData.large);
+    renderDist('dist-mid', distData.mid);
+    renderDist('dist-small', distData.small);
+  }
+}
+
+// ── API 对接 ──────────────────────────────────────────
+const API_BASE = 'http://47.110.91.188:8000';
+
+// 颜色辅助
+function valColor(v, positiveIsRed = true){
+  if(v > 0) return positiveIsRed ? 'r' : 'b';
+  if(v < 0) return positiveIsRed ? 'g' : 'g';
+  return '';
+}
+
+// 箭头符号
+function arrow(conclusion){
+  if(conclusion.includes('↑')) return '↑';
+  if(conclusion.includes('↓')) return '↓';
+  return '→';
+}
+
+// 从结论字符串提取大白话部分（"近30日偏少，仅高于8个交易日"）
+function noteFromConclusion(c){
+  const match = c.match(/[↑↓→]\s*(.+)/);
+  return match ? match[1] : c;
+}
+
+// 渲染今日概况 KPI
+function renderKPI(data){
+  const conclusions = {};
+  (data.conclusions || []).forEach(c => { conclusions[c.metric] = c; });
+
+  const lu = conclusions['limit_up'];
+  const ld = conclusions['limit_down'];
+  const vol = conclusions['volume'];
+  const ur = conclusions['up_ratio'];
+
+  // 涨停
+  if(lu){
+    document.querySelector('.kpi-box:nth-child(1) .kpi-val').textContent = lu.value;
+    document.querySelector('.kpi-box:nth-child(1) .kpi-note').innerHTML =
+      `${arrow(lu.conclusion)} ${noteFromConclusion(lu.conclusion)}`;
+  }
+
+  // 跌停
+  if(ld){
+    document.querySelector('.kpi-box:nth-child(2) .kpi-val').textContent = ld.value;
+    document.querySelector('.kpi-box:nth-child(2) .kpi-note').innerHTML =
+      `${arrow(ld.conclusion)} ${noteFromConclusion(ld.conclusion)}`;
+  }
+
+  // headline
+  const headlineEl = document.querySelector('.sec-title');
+  if(headlineEl && data.headline){
+    // 找"今日概况"旁边加 headline
+  }
+}
+
+// 渲染成交额
+function renderVolume(data){
+  const vol = (data.conclusions || []).find(c => c.metric === 'volume');
+  if(!vol) return;
+
+  // 成交额数值
+  const volEls = document.querySelectorAll('.stat-val');
+  volEls.forEach(el => {
+    if(el.closest('.sec') && el.closest('.sec').querySelector('.sec-title')?.textContent.includes('成交额')){
+      el.textContent = Math.round(vol.value).toLocaleString() + '亿';
+    }
+  });
+
+  // 成交额结论
+  const noteEl = document.querySelector('.vol-note');
+  if(noteEl) noteEl.textContent = noteFromConclusion(vol.conclusion);
+}
+
+// 渲染 ETF 列表
+function renderETF(etfList){
+  if(!etfList || etfList.length === 0) return;
+
+  // 按成交额排序（暂时用 change_pct 绝对值排）
+  const sorted = [...etfList].sort((a,b) => Math.abs(b.change_pct) - Math.abs(a.change_pct));
+
+  // ETF 成交额 tab
+  const volContainer = document.getElementById('etf-vol');
+  if(volContainer){
+    volContainer.innerHTML = sorted.map((e, i) => {
+      const pct = e.change_pct;
+      const pctStr = (pct >= 0 ? '+' : '') + pct.toFixed(2) + '%';
+      const cls = pct > 0 ? 'r' : pct < 0 ? 'g' : '';
+      const shareStr = e.share_change !== 0
+        ? `<span style="color:${e.share_change>0?'var(--red)':'var(--green)'}">
+            份额${e.share_change>0?'+':''}${e.share_change.toFixed(1)}亿
+           </span>`
+        : '—';
+      return `<div class="etf-row">
+        <div class="etf-rank">${i+1}</div>
+        <div class="etf-name">${e.fund_name}</div>
+        <div class="etf-vol b">${shareStr}</div>
+        <div class="etf-pct ${cls}">${pctStr}</div>
+      </div>`;
+    }).join('');
+  }
+
+  // ETF 份额变化 tab
+  const chgContainer = document.getElementById('etf-chg');
+  if(chgContainer){
+    const sorted2 = [...etfList].sort((a,b) => b.share_change - a.share_change);
+    chgContainer.innerHTML = sorted2.map((e) => {
+      const sc = e.share_change;
+      const arrow2 = sc > 0 ? '↑' : sc < 0 ? '↓' : '—';
+      const col = sc > 0 ? 'var(--red)' : sc < 0 ? 'var(--green)' : 'var(--text3)';
+      return `<div class="etf-row">
+        <div class="etf-rank" style="color:${col}">${arrow2}</div>
+        <div class="etf-name">${e.fund_name}</div>
+        <div class="etf-vol" style="color:var(--text3)">${Math.abs(sc).toFixed(1)}亿</div>
+        <div class="etf-pct ${e.change_pct>0?'r':e.change_pct<0?'g':''}">${(e.change_pct>=0?'+':'')+e.change_pct.toFixed(2)}%</div>
+      </div>`;
+    }).join('');
+  }
+}
+
+// 渲染信号
+function renderSignals(signals){
+  const risk = signals.risk || [];
+  const opp = signals.opportunity || [];
+
+  const riskEl = document.querySelector('.sec-title + div');
+
+  // 找风险信号容器
+  document.querySelectorAll('.sec-title').forEach(t => {
+    if(t.textContent.includes('风险信号')){
+      const container = t.closest('.sec') || t.parentElement;
+      const sigRows = container.querySelectorAll('.sig-row');
+      if(risk.length === 0){
+        sigRows.forEach(r => r.style.display = 'none');
+        // 加无信号提示
+        if(!container.querySelector('.no-signal')){
+          const noSig = document.createElement('div');
+          noSig.className = 'no-signal';
+          noSig.style.cssText = 'color:var(--text3);font-size:11px;padding:4px 0;';
+          noSig.textContent = '暂无风险信号';
+          t.after(noSig);
+        }
+      } else {
+        risk.forEach((s, i) => {
+          if(sigRows[i]){
+            sigRows[i].querySelector('.sig-title').textContent = s.name + '：' + s.desc;
+            sigRows[i].querySelector('.sig-detail').textContent = s.detail;
+            sigRows[i].style.display = '';
+          }
+        });
+      }
+    }
+
+    if(t.textContent.includes('机会信号')){
+      const container = t.closest('.sec') || t.parentElement;
+      const sigRows = container.querySelectorAll('.sig-row');
+      if(opp.length === 0){
+        sigRows.forEach(r => r.style.display = 'none');
+        if(!container.querySelector('.no-signal-opp')){
+          const noSig = document.createElement('div');
+          noSig.className = 'no-signal-opp';
+          noSig.style.cssText = 'color:var(--text3);font-size:11px;padding:4px 0;';
+          noSig.textContent = '暂无机会信号';
+          t.after(noSig);
+        }
+      } else {
+        opp.forEach((s, i) => {
+          if(sigRows[i]){
+            sigRows[i].querySelector('.sig-title').textContent = s.name + '：' + s.desc;
+            sigRows[i].querySelector('.sig-detail').textContent = s.detail;
+            sigRows[i].style.display = '';
+          }
+        });
+      }
+    }
+  });
+}
+
+// 渲染日期
+function renderDate(dateStr){
+  if(!dateStr) return;
+  const d = new Date(dateStr);
+  const str = `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+  document.querySelectorAll('.date-display, .topbar-date').forEach(el => {
+    el.textContent = str;
+  });
+}
+
+// 主加载函数
+async function loadData(){
+  try {
+    const res = await fetch(`${API_BASE}/api/market/overview`);
+    if(!res.ok) throw new Error(`HTTP ${res.status}`);
+    const data = await res.json();
+
+    renderDate(data.date);
+    renderKPI(data);
+    renderVolume(data);
+    renderETF(data.etf);
+    renderSignals(data.signals);
+
+    console.log('数据加载成功', data);
+  } catch(e) {
+    console.error('API 加载失败:', e);
+    // 失败时保留静态数据，不影响页面显示
+  }
+}
+
+// 页面加载时自动拉数据
+loadData();
+</script>
+</body>
+</html>

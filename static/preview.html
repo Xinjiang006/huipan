@@ -1,0 +1,273 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<title>慧盘 v2 · 数据预览</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Noto+Sans+SC:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg:      #12151b;
+  --bg2:     #181c24;
+  --bg3:     #1e2330;
+  --bg4:     #242a38;
+  --border:  #2a3142;
+  --text:    #bdc8da;
+  --text2:   #5e7091;
+  --text3:   #35425a;
+  --red:     #e05555;
+  --green:   #3aaa72;
+  --blue:    #4a96f0;
+  --yellow:  #e8b84a;
+  --red-bg:  rgba(224,85,85,0.1);
+  --grn-bg:  rgba(58,170,114,0.1);
+  --blu-bg:  rgba(74,150,240,0.1);
+  --yel-bg:  rgba(232,184,74,0.1);
+  --mono:    'DM Mono', monospace;
+  --sans:    'Noto Sans SC', sans-serif;
+}
+*{margin:0;padding:0;box-sizing:border-box;}
+body{background:var(--bg);color:var(--text);font-family:var(--sans);font-size:12px;height:100vh;overflow:hidden;display:flex;flex-direction:column;}
+
+/* 顶栏 */
+.topbar{display:flex;align-items:center;padding:0 14px;height:36px;background:var(--bg2);border-bottom:1px solid var(--border);flex-shrink:0;}
+.logo{font-family:var(--mono);font-size:13px;color:var(--yellow);letter-spacing:3px;margin-right:12px;}
+.logo-tag{font-family:var(--mono);font-size:9px;color:var(--text3);letter-spacing:1px;background:var(--bg4);padding:2px 6px;border-radius:2px;}
+.topbar-right{margin-left:auto;font-family:var(--mono);font-size:9px;color:var(--text3);}
+
+/* 主布局 */
+.main{flex:1;display:grid;grid-template-columns:1fr 320px 210px;gap:1px;background:var(--border);overflow:hidden;min-height:0;}
+.col{background:var(--bg);display:flex;flex-direction:column;overflow:hidden;}
+
+/* 区域标题 */
+.sec{padding:8px 12px;border-bottom:1px solid var(--border);flex-shrink:0;}
+.sec-title{font-family:var(--mono);font-size:8px;letter-spacing:2px;color:var(--text3);text-transform:uppercase;display:flex;align-items:center;gap:6px;}
+.sec-count{font-family:var(--mono);font-size:8px;color:var(--text3);background:var(--bg4);padding:1px 5px;border-radius:2px;}
+
+/* 滚动区域 */
+.scroll{flex:1;overflow-y:auto;scrollbar-width:thin;scrollbar-color:var(--border) transparent;}
+.scroll::-webkit-scrollbar{width:3px;}
+.scroll::-webkit-scrollbar-thumb{background:var(--border);border-radius:2px;}
+
+/* ── 新闻列表 ── */
+.news-item{padding:7px 12px;border-bottom:1px solid rgba(255,255,255,0.03);cursor:pointer;transition:background 0.1s;}
+.news-item:hover{background:var(--bg2);}
+.news-meta{display:flex;align-items:center;gap:5px;margin-bottom:3px;}
+.ntag{font-family:var(--mono);font-size:7px;padding:1px 4px;border-radius:2px;white-space:nowrap;}
+.ntag-t1{background:var(--red-bg);color:var(--red);border:1px solid rgba(224,85,85,0.2);}
+.ntag-t2{background:var(--yel-bg);color:var(--yellow);border:1px solid rgba(232,184,74,0.2);}
+.nsrc{font-family:var(--mono);font-size:8px;color:var(--text3);}
+.news-title{font-size:10px;color:var(--text);line-height:1.55;}
+.news-kw{font-size:8px;color:var(--text3);margin-top:2px;font-family:var(--mono);}
+
+/* ── 中列 Tab ── */
+.tab-bar{display:flex;gap:1px;padding:8px 12px 0;flex-shrink:0;}
+.tab-btn{padding:3px 10px;font-size:9px;font-family:var(--mono);color:var(--text2);background:var(--bg2);border:1px solid var(--border);border-radius:2px;cursor:pointer;transition:all 0.12s;}
+.tab-btn.on{background:var(--yel-bg);border-color:rgba(232,184,74,0.3);color:var(--yellow);}
+.tab-panel{display:none;flex:1;overflow:hidden;flex-direction:column;}
+.tab-panel.on{display:flex;}
+
+/* ETF 条形 */
+.etf-bar-item{display:flex;align-items:center;gap:6px;padding:4px 12px;border-bottom:1px solid rgba(255,255,255,0.03);}
+.etf-sym{font-family:var(--mono);font-size:9px;color:var(--text2);width:38px;flex-shrink:0;}
+.etf-name{font-size:10px;color:var(--text);width:50px;flex-shrink:0;}
+.etf-bar-track{flex:1;height:4px;background:var(--bg4);border-radius:2px;overflow:hidden;position:relative;}
+.etf-bar-fill{height:100%;border-radius:2px;transition:width 0.3s;}
+.etf-price{font-family:var(--mono);font-size:9px;color:var(--text3);width:52px;text-align:right;flex-shrink:0;}
+.etf-pct{font-family:var(--mono);font-size:10px;width:50px;text-align:right;flex-shrink:0;}
+
+/* 动量榜 */
+.mover-row{display:flex;align-items:center;gap:4px;padding:3px 12px;border-bottom:1px solid rgba(255,255,255,0.03);}
+.mover-rank{font-family:var(--mono);font-size:8px;color:var(--text3);width:14px;flex-shrink:0;}
+.mover-sym{font-family:var(--mono);font-size:10px;color:var(--blue);width:46px;flex-shrink:0;}
+.mover-name{font-size:9px;color:var(--text2);flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.mover-price{font-family:var(--mono);font-size:9px;color:var(--text);width:52px;text-align:right;flex-shrink:0;}
+.mover-pct{font-family:var(--mono);font-size:10px;width:52px;text-align:right;flex-shrink:0;}
+
+/* ── 右列 ── */
+.rgroup{padding:5px 10px;border-bottom:1px solid var(--border);}
+.rgroup-title{font-family:var(--mono);font-size:8px;letter-spacing:2px;color:var(--text3);text-transform:uppercase;margin-bottom:4px;}
+.mkt-row{display:grid;grid-template-columns:1fr auto auto;align-items:baseline;gap:4px;padding:2px 0;border-bottom:1px solid rgba(255,255,255,0.025);}
+.mkt-row:last-child{border-bottom:none;}
+.mkt-name{font-size:10px;color:var(--text2);white-space:nowrap;}
+.mkt-val{font-family:var(--mono);font-size:10px;color:var(--text);text-align:right;white-space:nowrap;}
+.mkt-chg{font-family:var(--mono);font-size:10px;text-align:right;white-space:nowrap;min-width:50px;}
+
+/* 涨跌颜色 */
+.r{color:var(--red);}.g{color:var(--green);}.y{color:var(--yellow);}.b{color:var(--blue);}
+
+/* 加载状态 */
+.loading{display:flex;align-items:center;justify-content:center;height:100%;color:var(--text3);font-family:var(--mono);font-size:11px;}
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <div class="logo">慧盘</div>
+  <div class="logo-tag">v2 DATA PREVIEW</div>
+  <div class="topbar-right" id="status">加载中...</div>
+</div>
+
+<div class="main">
+
+  <!-- 左列：新闻 -->
+  <div class="col">
+    <div class="sec">
+      <div class="sec-title">外文财经新闻 <span class="sec-count" id="news-count">—</span></div>
+    </div>
+    <div class="scroll" id="news-list">
+      <div class="loading">加载中...</div>
+    </div>
+  </div>
+
+  <!-- 中列：ETF + 动量榜 -->
+  <div class="col">
+    <div class="tab-bar" id="mid-tabs">
+      <div class="tab-btn on" data-tab="etf">板块ETF</div>
+      <div class="tab-btn" data-tab="gainers">涨幅榜</div>
+      <div class="tab-btn" data-tab="losers">跌幅榜</div>
+      <div class="tab-btn" data-tab="most_active">成交量</div>
+      <div class="tab-btn" data-tab="trending">热门</div>
+    </div>
+    <div class="tab-panel on" id="panel-etf">
+      <div class="scroll" id="etf-list"><div class="loading">加载中...</div></div>
+    </div>
+    <div class="tab-panel" id="panel-gainers">
+      <div class="scroll" id="mover-gainers"><div class="loading">加载中...</div></div>
+    </div>
+    <div class="tab-panel" id="panel-losers">
+      <div class="scroll" id="mover-losers"><div class="loading">加载中...</div></div>
+    </div>
+    <div class="tab-panel" id="panel-most_active">
+      <div class="scroll" id="mover-most_active"><div class="loading">加载中...</div></div>
+    </div>
+    <div class="tab-panel" id="panel-trending">
+      <div class="scroll" id="mover-trending"><div class="loading">加载中...</div></div>
+    </div>
+  </div>
+
+  <!-- 右列：全球行情 -->
+  <div class="col scroll" id="global-list">
+    <div class="loading">加载中...</div>
+  </div>
+
+</div>
+
+<script>
+// Tab 切换
+document.getElementById('mid-tabs').addEventListener('click', e => {
+  const btn = e.target.closest('.tab-btn');
+  if (!btn) return;
+  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('on'));
+  document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('on'));
+  btn.classList.add('on');
+  document.getElementById('panel-' + btn.dataset.tab).classList.add('on');
+});
+
+// 涨跌颜色
+function chgClass(v) { return v > 0 ? 'r' : v < 0 ? 'g' : ''; }
+function fmtPct(v) { return (v > 0 ? '+' : '') + v.toFixed(2) + '%'; }
+function fmtPrice(v) { return v >= 100 ? v.toLocaleString('en', {minimumFractionDigits:2, maximumFractionDigits:2}) : v.toFixed(v >= 10 ? 2 : 4); }
+
+// 渲染新闻
+function renderNews(news) {
+  const el = document.getElementById('news-list');
+  document.getElementById('news-count').textContent = `${news.length} 条`;
+  el.innerHTML = news.map(n => {
+    const tagCls = n.tier === 1 ? 'ntag-t1' : 'ntag-t2';
+    const tagTxt = n.tier === 1 ? 'T1' : 'T2';
+    const kw = n.keywords ? n.keywords.split(',').slice(0, 3).join(', ') : '';
+    return `<div class="news-item" onclick="window.open('${n.url}','_blank')">
+      <div class="news-meta">
+        <span class="ntag ${tagCls}">${tagTxt}</span>
+        <span class="nsrc">${n.source}</span>
+      </div>
+      <div class="news-title">${n.title}</div>
+      ${kw ? `<div class="news-kw">← ${kw}</div>` : ''}
+    </div>`;
+  }).join('');
+}
+
+// 渲染 ETF
+function renderETFs(etfs) {
+  const el = document.getElementById('etf-list');
+  const maxAbs = Math.max(...etfs.map(e => Math.abs(e.change_pct)), 1);
+  el.innerHTML = etfs.map(e => {
+    const w = Math.round(Math.abs(e.change_pct) / maxAbs * 100);
+    const color = e.change_pct > 0 ? 'var(--red)' : e.change_pct < 0 ? 'var(--green)' : 'var(--text3)';
+    const dir = e.change_pct >= 0 ? 'right' : 'left';
+    return `<div class="etf-bar-item">
+      <div class="etf-sym"><a href="https://finance.yahoo.com/quote/${e.symbol}" target="_blank" style="color:var(--blue);text-decoration:none">${e.symbol}</a></div>
+      <div class="etf-name">${e.name}</div>
+      <div class="etf-bar-track">
+        <div class="etf-bar-fill" style="width:${w}%;background:${color};margin-left:${dir==='left'?'auto':'0'}"></div>
+      </div>
+      <div class="etf-price">$${fmtPrice(e.close)}</div>
+      <div class="etf-pct ${chgClass(e.change_pct)}">${fmtPct(e.change_pct)}</div>
+    </div>`;
+  }).join('');
+}
+
+// 渲染动量榜
+function renderMovers(movers) {
+  for (const mtype of ['gainers', 'losers', 'most_active', 'trending']) {
+    const el = document.getElementById('mover-' + mtype);
+    const items = movers[mtype] || [];
+    el.innerHTML = items.map((m, i) => {
+      return `<div class="mover-row">
+        <div class="mover-rank">${i + 1}</div>
+        <div class="mover-sym"><a href="https://finance.yahoo.com/quote/${m.symbol}" target="_blank" style="color:var(--blue);text-decoration:none">${m.symbol}</a></div>
+        <div class="mover-name">${m.name}</div>
+        <div class="mover-price">$${fmtPrice(m.price)}</div>
+        <div class="mover-pct ${chgClass(m.change_pct)}">${fmtPct(m.change_pct)}</div>
+      </div>`;
+    }).join('');
+  }
+}
+
+// 渲染全球行情
+function renderGlobal(items) {
+  const groups = [
+    { title: '港股', filter: 'hk_index' },
+    { title: '美股', filter: 'us_index' },
+    { title: '汇率', filter: 'forex' },
+    { title: '利率', filter: 'bond' },
+    { title: '贵金属', filter: 'precious_metal' },
+    { title: '能源', filter: 'energy' },
+    { title: '有色', filter: 'base_metal' },
+    { title: '其他', filter: 'crypto' },
+  ];
+
+  const el = document.getElementById('global-list');
+  el.innerHTML = groups.map(g => {
+    const rows = items.filter(i => i.category === g.filter);
+    if (!rows.length) return '';
+    const rowsHtml = rows.map(r => {
+      const isBond = r.category === 'bond';
+      const chgStr = isBond ? (r.change_pct > 0 ? '+' : '') + r.change_pct.toFixed(1) + 'bp' : fmtPct(r.change_pct);
+      return `<div class="mkt-row">
+        <div class="mkt-name">${r.name}</div>
+        <div class="mkt-val">${fmtPrice(r.value)}</div>
+        <div class="mkt-chg ${chgClass(r.change_pct)}">${chgStr}</div>
+      </div>`;
+    }).join('');
+    return `<div class="rgroup"><div class="rgroup-title">${g.title}</div>${rowsHtml}</div>`;
+  }).join('');
+}
+
+// 加载数据
+fetch('preview_data.json')
+  .then(r => r.json())
+  .then(data => {
+    renderNews(data.news);
+    renderETFs(data.etfs);
+    renderMovers(data.movers);
+    renderGlobal(data.global_market);
+    document.getElementById('status').textContent = `数据日期: ${data.exported_at} · ${data.news.length} 新闻 · ${data.etfs.length} ETF · ${data.global_market.length} 行情`;
+  })
+  .catch(err => {
+    document.getElementById('status').textContent = '❌ 加载失败: ' + err.message;
+    console.error(err);
+  });
+</script>
+</body>
+</html>

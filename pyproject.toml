@@ -1,0 +1,19 @@
+
+
+[project]
+name = "huipan"
+version = "0.0.1"
+readme = "README.md"
+requires-python = ">=3.14"
+dependencies = [
+    "akshare",
+    "requests",
+    "beautifulsoup4",
+    "feedparser",
+    "lxml",
+    "duckdb",
+    "pandas",
+    "APScheduler",
+    "loguru",
+    "numpy",
+]
